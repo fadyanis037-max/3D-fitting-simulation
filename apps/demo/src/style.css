@@ -1,0 +1,114 @@
+:root {
+  color: #e8e4dc;
+  background: #14181c;
+  font-family: "Segoe UI", system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+}
+
+main {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 20px 16px 28px;
+}
+
+header {
+  text-align: center;
+}
+
+h1 {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+}
+
+#status {
+  margin: 6px 0 0;
+  color: #b7c0b4;
+  min-height: 1.2em;
+}
+
+#stage {
+  position: relative;
+  width: min(960px, 100%);
+  aspect-ratio: 16 / 9;
+  background: #0c0f12;
+  overflow: hidden;
+}
+
+#stage video,
+#stage canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: scaleX(-1);
+}
+
+#placeholder {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  color: #8d978c;
+}
+
+#placeholder[hidden] {
+  display: none;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 14px 18px;
+}
+
+button {
+  border: 0;
+  background: #f3efe6;
+  color: #1a1d20;
+  font: inherit;
+  font-weight: 650;
+  padding: 10px 18px;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #d5dbd2;
+}
+
+#fps {
+  min-width: 11rem;
+  color: #9aa396;
+  font-variant-numeric: tabular-nums;
+}
+
+.note {
+  max-width: 38rem;
+  margin: 0;
+  text-align: center;
+  color: #8f998c;
+  line-height: 1.45;
+}

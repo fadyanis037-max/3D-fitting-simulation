@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Virtual try-on</title>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Virtual try-on</h1>
+        <p id="status">Camera is off</p>
+      </header>
+      <div id="stage">
+        <video id="video" playsinline autoplay muted></video>
+        <canvas id="canvas"></canvas>
+        <p id="placeholder">Your camera image will show up here.</p>
+      </div>
+      <div class="controls">
+        <button id="preview" type="button">Preview jacket</button>
+        <button id="start" type="button">Start camera</button>
+        <label class="check">
+          <input id="skeleton" type="checkbox" />
+          Show body lines
+        </label>
+        <span id="fps"></span>
+      </div>
+      <p class="note">
+        Stand back so your head, shoulders, and hips are in frame. Your video stays on this computer.
+        The first start downloads the pose model once.
+      </p>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

@@ -1,0 +1,12 @@
+{
+  "name": "vto",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w @vto/demo",
+    "typecheck": "npm run typecheck -w @vto/engine && npm run typecheck -w @vto/demo"
+  }
+}

@@ -1,9 +1,7 @@
 import { FilesetResolver, PoseLandmarker } from "@mediapipe/tasks-vision";
-import type { Landmark, PoseDelegate, WorkerFrameMessage, WorkerResponse } from "../types";
+import { POSE_MODEL, type Landmark, type PoseDelegate, type WorkerFrameMessage, type WorkerResponse } from "../types";
 
 const WASM_BASE = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.35/wasm";
-const MODEL_URL =
-  "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_full/float16/latest/pose_landmarker_full.task";
 const MAX_FRAME_WIDTH = 640;
 
 const scope = self as unknown as {
@@ -51,7 +49,7 @@ async function createLandmarker(): Promise<PoseDelegate> {
     try {
       landmarker = await PoseLandmarker.createFromOptions(vision, {
         baseOptions: {
-          modelAssetPath: MODEL_URL,
+          modelAssetPath: POSE_MODEL.url,
           delegate,
         },
         runningMode: "VIDEO",

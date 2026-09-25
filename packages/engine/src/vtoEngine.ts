@@ -5,10 +5,11 @@ import {
   Scene,
   WebGLRenderer,
 } from "three";
-import { JointExtractor, type BodyJoints } from "./rig/joints";
+import { JointExtractor } from "./rig/joints";
 import { RigSolver } from "./rig/rigSolver";
 import { standingLandmarks } from "./rig/standingPose";
 import { Avatar } from "./render/avatar";
+import { PoseSkeleton } from "./render/poseSkeleton";
 import { PoseTracker } from "./tracking/poseTracker";
 import type { PoseDelegate } from "./types";
 
@@ -20,7 +21,6 @@ export interface EngineStats {
 export interface VtoEngineOptions {
   canvas: HTMLCanvasElement;
   video: HTMLVideoElement;
-  garmentUrl?: string;
   onReady?: (delegate: PoseDelegate) => void;
   onError?: (message: string) => void;
   onTracking?: (visible: boolean) => void;
@@ -38,11 +38,11 @@ export class VtoEngine {
   private readonly scene = new Scene();
   private readonly camera: OrthographicCamera;
   private readonly avatar = new Avatar();
+  private readonly skeleton = new PoseSkeleton();
   private readonly joints = new JointExtractor();
   private readonly solver = new RigSolver();
   private readonly tracker: PoseTracker;
   private readonly standing = standingLandmarks();
-  private readonly garmentReady: Promise<void>;
   private aspect = 16 / 9;
   private mode: "off" | "preview" | "camera" = "off";
   private tracking = false;
@@ -74,35 +74,26 @@ export class VtoEngine {
     const ambient = new AmbientLight(0xffffff, 0.55);
     const key = new DirectionalLight(0xfff6ee, 1.35);
     key.position.set(0.35, 0.8, 2);
-    this.scene.add(ambient, key, this.avatar.root, this.avatar.debugRoot);
-
-    this.garmentReady = this.avatar.load(options.garmentUrl ?? "/garments/jacket.glb").catch((error: unknown) => {
-      const message = error instanceof Error ? error.message : "Could not load the jacket.";
-      this.onError?.(message);
-      throw error;
-    });
+    this.scene.add(ambient, key, this.avatar.root, this.skeleton.root);
 
     this.tracker = new PoseTracker(
       (pose) => {
         if (this.mode !== "camera") return;
         if (!pose) {
+          this.hideBody();
           this.setTracking(false);
           return;
         }
-        const joints = this.joints.update(pose.landmarks, pose.worldLandmarks, this.aspect);
-        if (!joints) {
-          this.setTracking(false);
-          return;
-        }
-        this.applyPose(joints, true);
-        this.setTracking(true);
+        const joints = this.joints.update(pose.landmarks, this.aspect);
+        this.avatar.setVisible(false);
+        this.skeleton.update(pose.landmarks, this.aspect);
+        this.setTracking(joints !== null);
       },
       (message) => this.onError?.(message),
     );
   }
 
   async start(): Promise<void> {
-    await this.garmentReady;
     const delegate = await this.tracker.init();
     this.onReady?.(delegate);
     this.mode = "camera";
@@ -119,6 +110,7 @@ export class VtoEngine {
     this.mode = "off";
     if (this.raf !== 0) cancelAnimationFrame(this.raf);
     this.raf = 0;
+    this.hideBody();
     this.setTracking(false);
   }
 
@@ -136,15 +128,19 @@ export class VtoEngine {
     this.camera.bottom = -1;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(cssWidth, cssHeight, false);
+    this.skeleton.setResolution(this.canvas.width, this.canvas.height);
   }
 
   setShowSkeleton(show: boolean): void {
-    this.avatar.setShowSkeleton(show);
+    this.skeleton.setShown(show);
+  }
+
+  private hideBody(): void {
+    this.avatar.setVisible(false);
+    this.skeleton.hide();
   }
 
   private setTracking(visible: boolean): void {
-    if (!visible) this.avatar.setVisible(false);
-    else this.avatar.setVisible(true);
     if (visible === this.tracking) return;
     this.tracking = visible;
     this.onTracking?.(visible);
@@ -157,16 +153,11 @@ export class VtoEngine {
   }
 
   private applyStandingPose(): void {
-    const joints = this.joints.update(this.standing, null, this.aspect);
+    const joints = this.joints.update(this.standing, this.aspect);
     if (!joints) return;
-    this.applyPose(joints, false);
-    this.avatar.setVisible(true);
-  }
-
-  private applyPose(joints: BodyJoints, freezeScale: boolean): void {
-    if (!this.avatar.rig) return;
-    this.solver.apply(this.avatar.rig, joints, freezeScale);
+    this.solver.apply(this.avatar.rig, joints);
     this.avatar.updateDebug(joints);
+    this.avatar.setVisible(true);
   }
 
   private readonly loop = (now: number): void => {

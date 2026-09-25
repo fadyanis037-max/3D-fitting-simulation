@@ -3,14 +3,12 @@ import { PoseSmoother } from "./poseSmoother";
 
 export interface TrackedPose {
   landmarks: Landmark[];
-  worldLandmarks: Landmark[] | null;
   timestamp: number;
 }
 
 export class PoseTracker {
   private readonly worker: Worker;
-  private readonly imageSmoother = new PoseSmoother();
-  private readonly worldSmoother = new PoseSmoother();
+  private readonly smoother = new PoseSmoother();
   private readonly ready: Promise<PoseDelegate>;
   private resolveReady: ((delegate: PoseDelegate) => void) | null = null;
   private rejectReady: ((error: Error) => void) | null = null;
@@ -50,16 +48,12 @@ export class PoseTracker {
       this.inFlight = false;
       this.samples += 1;
       if (!message.landmarks) {
-        this.imageSmoother.reset();
-        this.worldSmoother.reset();
+        this.smoother.reset();
         this.onPose(null);
         return;
       }
       this.onPose({
-        landmarks: this.imageSmoother.smooth(message.landmarks, message.timestamp),
-        worldLandmarks: message.worldLandmarks
-          ? this.worldSmoother.smooth(message.worldLandmarks, message.timestamp)
-          : null,
+        landmarks: this.smoother.smooth(message.landmarks, message.timestamp),
         timestamp: message.timestamp,
       });
     };

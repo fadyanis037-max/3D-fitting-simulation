@@ -1,4 +1,4 @@
-import { VtoEngine } from "@vto/engine";
+import { POSE_MODEL, VtoEngine } from "@vto/engine";
 
 const videoQuery = document.querySelector<HTMLVideoElement>("#video");
 const canvasQuery = document.querySelector<HTMLCanvasElement>("#canvas");
@@ -75,13 +75,13 @@ function ensureEngine(): VtoEngine {
       if (previewing) return;
       setStatus(
         visible
-          ? "The jacket should sit on your shoulders. Turn slowly to see the sleeves follow."
+          ? "White dots should sit on your shoulders, elbows, hips, knees, and ankles. The face is not tracked."
           : "Step back until your shoulders and hips are in the picture.",
       );
     },
     onStats: (stats) => {
       if (!stream) return;
-      fps.textContent = `${Math.round(stats.renderFps)} fps · pose ${Math.round(stats.poseFps)}`;
+      fps.textContent = `${POSE_MODEL.name} · ${Math.round(stats.renderFps)} fps · pose ${Math.round(stats.poseFps)}`;
     },
   });
   engine.setShowSkeleton(skeleton.checked);
@@ -113,7 +113,7 @@ function showPreview(): void {
 }
 async function start(): Promise<void> {
   startButton.disabled = true;
-  setStatus("Loading the pose model…");
+  setStatus(`Loading the ${POSE_MODEL.name} pose model…`);
   try {
     stream = await navigator.mediaDevices.getUserMedia({
       audio: false,
